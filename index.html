@@ -1,398 +1,344 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>💌</title>
-
+  <title>Scratch Reveal</title>
   <style>
     :root{
-      /* softer, warmer palette (not neon) */
-      --bg1:#0f0b10;         /* deep plum-black */
-      --bg2:#1a1220;         /* dark eggplant */
-      --card: rgba(255,255,255,0.06);
-      --border: rgba(255,255,255,0.14);
-      --text: rgba(255,255,255,0.93);
-      --muted: rgba(255,255,255,0.72);
-
-      --accent:#e8a6b8;      /* dusty rose */
-      --accent2:#f0d7a6;     /* soft gold */
-      --shadow: rgba(0,0,0,0.45);
+      /* page background (you mentioned using a card color like this) */
+      --page-bg: #1b82c1;
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
     }
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      min-height:100svh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background:
-        radial-gradient(1000px 700px at 15% 10%, rgba(232,166,184,0.18), transparent 60%),
-        radial-gradient(900px 600px at 85% 25%, rgba(240,215,166,0.14), transparent 60%),
-        linear-gradient(180deg, var(--bg2), var(--bg1));
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--page-bg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x: hidden;
     }
 
-    .wrap{ width:min(720px, 100%); }
-
-    .top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:14px;
-    }
-
-    .badge, .progress{
-      font-size:12px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--muted);
-      border:1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      padding:8px 10px;
-      border-radius:999px;
-      user-select:none;
+    .wrap{
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 18px 12px;
     }
 
     .card{
-      border:1px solid var(--border);
-      background: var(--card);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow: 0 22px 70px var(--shadow);
+      position: relative;
+      width: min(92vw, 820px);
+      /* keep the image crisp */
+      image-rendering: auto;
+      filter: drop-shadow(var(--shadow));
+      border-radius: 10px; /* subtle on desktop; image itself is rectangular */
+      overflow: visible;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none; /* important for mobile scratching */
     }
 
-    .hero{ padding:18px; }
-    h1{
-      margin:0 0 6px 0;
-      font-size:22px;
-      line-height:1.2;
-    }
-    p{ margin:0; color:var(--muted); line-height:1.45; }
-
-    .divider{ height:1px; background:var(--border); margin:14px 0; }
-
-    .scratchFrame{
-      position:relative;
-      border-radius:16px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,0.16);
-      background:
-        linear-gradient(135deg, rgba(232,166,184,0.12), transparent 40%),
-        linear-gradient(225deg, rgba(240,215,166,0.10), transparent 55%),
-        rgba(0,0,0,0.25);
-    }
-
-    /* revealed content sits UNDER the scratch layer */
-    .under{
-      position:relative;
-      padding:18px;
-      display:grid;
-      gap:12px;
-    }
-
-    .under .title{
-      font-size:18px;
-      font-weight:800;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-
-    .meta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-
-    .meta span{
-      font-size:12px;
-      color:var(--muted);
-      border:1px dashed rgba(255,255,255,0.18);
-      padding:6px 10px;
-      border-radius:999px;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .big{
-      font-size:20px;
-      line-height:1.25;
-    }
-
-    .small{
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-    }
-
-    .ticket{
-      width:100%;
-      max-width:520px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,0.14);
+    .card img{
       display:block;
+      width:100%;
+      height:auto;
     }
 
-    /* THE CANVAS IS THE SCRATCH LAYER */
-    #scratch{
+    /* Scratch canvas sits on top of the exact frame area */
+    #scratchCanvas{
       position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      display:block;
+      left:0;
+      top:0;
+      pointer-events:auto;
       touch-action:none;
+      border-radius: 6px;
+      opacity: 1;
+      transition: opacity 650ms ease;
     }
 
     .hint{
-      margin-top:10px;
-      font-size:12px;
-      color:var(--muted);
-      padding:0 18px 18px 18px;
+      margin-top: 14px;
+      color: rgba(255,255,255,.9);
+      font-size: 14px;
+      text-align: center;
+      max-width: 60ch;
     }
 
-    .footer{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      padding:0 18px 18px 18px;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    button{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      padding:10px 12px;
-      border-radius:12px;
-      font-weight:700;
-      background: rgba(255,255,255,0.08);
-      color:var(--text);
-      border:1px solid rgba(255,255,255,0.16);
-      width:max-content;
-    }
-    button:hover{ background: rgba(255,255,255,0.12); }
+    .hint strong{ color:#fff; }
   </style>
 </head>
-
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="badge">for james • open when you’re alone-ish 😈</div>
-      <div class="progress" id="prog">scratch: 0%</div>
+    <div class="card" id="card">
+      <img id="cardImg" src="card.png" alt="Scratch card" draggable="false" />
+      <canvas id="scratchCanvas" aria-label="Scratch to reveal"></canvas>
     </div>
 
-    <div class="card">
-      <div class="hero">
-        <h1>Okay hi. I made you something.</h1>
-        <p>Scratch the card. Don’t be dramatic about it.</p>
-
-        <div class="divider"></div>
-
-        <div class="scratchFrame" id="frame">
-          <div class="under">
-            <!-- EDIT THIS CONTENT -->
-            <div class="title">💌 Happy Valentine’s</div>
-
-            <div class="meta">
-              <span>Poison the Well</span>
-              <span>May 16, 2026 • 6:00 PM</span>
-              <span>The Observatory North Park • San Diego</span>
-            </div>
-
-            <div class="big">
-              You’re coming out of mosh retirement for this one. &lt;3
-            </div>
-
-            <div class="small">
-              I already got the ticket. We’ll do it right: good food, downtown energy, then loud boys.
-            </div>
-
-            <img class="ticket" src="tickets.jpg" alt="Ticket screenshot">
-            <!-- /EDIT -->
-          </div>
-
-          <canvas id="scratch"></canvas>
-        </div>
-
-        <div class="hint">
-          <strong>How to use:</strong> scratch the gray layer with your finger. (Desktop: click + drag.)
-        </div>
-
-        <div class="footer">
-          <div>made with: heart eyes + determination</div>
-          <div>— Koryn</div>
-        </div>
-      </div>
+    <div class="hint">
+      <strong>Tip:</strong> scratch on the framed area to reveal 🎟️ (works on mobile + desktop)
     </div>
   </div>
 
+  <audio id="revealAudio" preload="auto" src="cardaudio.mp3"></audio>
+
   <script>
-    const canvas = document.getElementById('scratch');
-    const ctx = canvas.getContext('2d');
-    const prog = document.getElementById('prog');
-    const frame = document.getElementById('frame');
+    // ====== CONFIG YOU CAN TWEAK ======
+    // These are the scratch-area bounds measured on the *original* card.png pixels.
+    // (Lined up to the frame under "Scratch here".)
+    const SCRATCH_BOUNDS = {
+      x0: 183,  // left
+      y0: 1148, // top
+      x1: 913,  // right
+      y1: 1828  // bottom
+    };
 
-    let isDown = false;
-    let last = null;
+    const AUDIO_START_SECONDS = 9;     // start at 9s into mp3
+    const REVEAL_THRESHOLD = 0.60;     // % cleared needed to trigger reveal (0-1)
+    const BRUSH_RADIUS_BASE = 26;      // brush size in CSS pixels (auto-adjusted a bit)
+    // =================================
 
-    function sizeCanvas(){
-      const rect = frame.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const img = document.getElementById('cardImg');
+    const card = document.getElementById('card');
+    const canvas = document.getElementById('scratchCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const audio = document.getElementById('revealAudio');
 
-      canvas.width  = Math.floor(rect.width  * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
+    let isPointerDown = false;
+    let lastPt = null;
+    let revealed = false;
+    let strokes = 0;
 
-      canvas.style.width  = rect.width + "px";
-      canvas.style.height = rect.height + "px";
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      paintCover();
+    function layoutCanvasToImage() {
+      // Use the displayed image size to scale the scratch region
+      const rect = img.getBoundingClientRect();
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+
+      if (!naturalW || !naturalH) return;
+
+      const scaleX = rect.width / naturalW;
+      const scaleY = rect.height / naturalH;
+
+      const left = SCRATCH_BOUNDS.x0 * scaleX;
+      const top  = SCRATCH_BOUNDS.y0 * scaleY;
+      const w    = (SCRATCH_BOUNDS.x1 - SCRATCH_BOUNDS.x0) * scaleX;
+      const h    = (SCRATCH_BOUNDS.y1 - SCRATCH_BOUNDS.y0) * scaleY;
+
+      // Position canvas over the scratch region
+      canvas.style.left = `${left}px`;
+      canvas.style.top  = `${top}px`;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+
+      // Set the actual backing store size for crispness
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width  = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+
+      drawScratchCoating(w, h);
     }
 
-    function paintCover(){
-      const w = frame.clientWidth;
-      const h = frame.clientHeight;
+    function drawScratchCoating(w, h) {
+      revealed = false;
+      strokes = 0;
+      lastPt = null;
+      canvas.style.opacity = '1';
 
+      // Base coating
       ctx.globalCompositeOperation = 'source-over';
-      ctx.clearRect(0,0,w,h);
+      ctx.clearRect(0, 0, w, h);
 
-      // Scratch surface (soft gray + texture)
-      ctx.fillStyle = 'rgba(230,230,230,0.96)';
-      ctx.fillRect(0,0,w,h);
+      // A slightly “scratchy” coating look
+      ctx.fillStyle = '#b9b9b9';
+      ctx.fillRect(0, 0, w, h);
 
-      // light speckle texture
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      for(let i=0;i<900;i++){
-        const x = Math.random()*w;
-        const y = Math.random()*h;
-        const r = Math.random()*1.8;
+      // Add some speckle/noise
+      for (let i = 0; i < 900; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const r = Math.random() * 1.6 + 0.4;
+        const a = Math.random() * 0.18 + 0.04;
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
         ctx.beginPath();
-        ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      for (let i = 0; i < 650; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const r = Math.random() * 1.4 + 0.3;
+        const a = Math.random() * 0.20 + 0.05;
+        ctx.fillStyle = `rgba(0,0,0,${a})`;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // instruction text on the scratch layer
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.font = '800 18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-      ctx.fillText('scratch to reveal', 18, 40);
-      ctx.font = '500 13px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-      ctx.fillText('use your finger • or click + drag', 18, 62);
+      // Optional: subtle sheen
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, 'rgba(255,255,255,0.18)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.08)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
 
-      updateProgress();
-    }
-
-    function getPos(e){
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches?.[0];
-      const clientX = touch ? touch.clientX : e.clientX;
-      const clientY = touch ? touch.clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    function scratchLine(from, to){
+      // Prepare for erasing strokes
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.lineWidth = 40; // juicy scratch width
-      ctx.beginPath();
-      ctx.moveTo(from.x, from.y);
-      ctx.lineTo(to.x, to.y);
-      ctx.stroke();
-      ctx.globalCompositeOperation = 'source-over';
+      ctx.lineCap = 'round';
     }
 
-    function onDown(e){
-      e.preventDefault();
-      isDown = true;
-      last = getPos(e);
-
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.beginPath();
-      ctx.arc(last.x, last.y, 20, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
-
-      updateProgress();
+    function getCanvasPointFromEvent(e) {
+      const r = canvas.getBoundingClientRect();
+      const x = (e.clientX - r.left);
+      const y = (e.clientY - r.top);
+      return { x: clamp(x, 0, r.width), y: clamp(y, 0, r.height) };
     }
 
-    function onMove(e){
-      if(!isDown) return;
-      e.preventDefault();
-      const pos = getPos(e);
-      scratchLine(last, pos);
-      last = pos;
-      updateProgressThrottled();
-    }
+    function scratchTo(pt) {
+      const r = canvas.getBoundingClientRect();
+      const w = r.width, h = r.height;
 
-    function onUp(){
-      isDown = false;
-      last = null;
-      const pct = updateProgress();
-      if(pct >= 55) autoFinish();
-    }
+      // brush radius adapts slightly to screen size
+      const brush = clamp(BRUSH_RADIUS_BASE * (w / 720), 18, 42);
 
-    canvas.addEventListener('mousedown', onDown);
-    canvas.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+      ctx.lineWidth = brush * 2;
 
-    canvas.addEventListener('touchstart', onDown, {passive:false});
-    canvas.addEventListener('touchmove', onMove, {passive:false});
-    window.addEventListener('touchend', onUp);
-
-    function computeScratchedPercent(){
-      const w = canvas.width;
-      const h = canvas.height;
-      const img = ctx.getImageData(0,0,w,h).data;
-
-      const step = 24; // speed/accuracy balance
-      let total = 0, cleared = 0;
-      for(let i=3; i<img.length; i+=4*step){
-        total++;
-        if(img[i] === 0) cleared++;
+      if (!lastPt) {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, brush, 0, Math.PI * 2);
+        ctx.fill();
+        lastPt = pt;
+        return;
       }
-      return Math.round((cleared/total)*100);
+
+      ctx.beginPath();
+      ctx.moveTo(lastPt.x, lastPt.y);
+      ctx.lineTo(pt.x, pt.y);
+      ctx.stroke();
+
+      // also stamp circles to avoid gaps
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, brush, 0, Math.PI * 2);
+      ctx.fill();
+
+      lastPt = pt;
     }
 
-    let throttleTimer = null;
-    function updateProgressThrottled(){
-      if(throttleTimer) return;
-      throttleTimer = setTimeout(()=>{
-        updateProgress();
-        throttleTimer = null;
-      }, 120);
-    }
+    function clearedFractionSampled(step = 10) {
+      // Sample alpha channel to estimate cleared area quickly.
+      // step=10 means we read every 10th pixel in both directions.
+      const r = canvas.getBoundingClientRect();
+      const w = Math.floor(r.width);
+      const h = Math.floor(r.height);
 
-    function updateProgress(){
-      const pct = computeScratchedPercent();
-      prog.textContent = `scratch: ${pct}%`;
-      return pct;
-    }
+      // Use backing store (already dpr-scaled) but we draw in CSS pixels,
+      // so sampling in CSS pixels via getImageData on the full canvas works fine.
+      const imgData = ctx.getImageData(0, 0, w, h).data;
 
-    function autoFinish(){
-      // fade out remaining cover for a satisfying finish
-      const w = frame.clientWidth, h = frame.clientHeight;
-      const fade = setInterval(()=>{
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0,0,0,0.09)';
-        ctx.fillRect(0,0,w,h);
-        ctx.globalCompositeOperation = 'source-over';
-        const p = updateProgress();
-        if(p >= 92){
-          clearInterval(fade);
-          prog.textContent = `scratch: 100%`;
+      let cleared = 0;
+      let total = 0;
+
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const idx = (y * w + x) * 4 + 3; // alpha
+          const a = imgData[idx];
+          // destination-out makes cleared pixels alpha=0
+          if (a === 0) cleared++;
+          total++;
         }
-      }, 30);
+      }
+      return total ? (cleared / total) : 0;
     }
 
-    window.addEventListener('resize', sizeCanvas);
-    // wait a beat so fonts/layout settle
-    setTimeout(sizeCanvas, 40);
+    function triggerReveal() {
+      if (revealed) return;
+      revealed = true;
+
+      // Fade the coating away (even if not 100% scratched)
+      canvas.style.opacity = '0';
+
+      // Start audio at 9s — should be allowed because the user just interacted
+      try {
+        audio.currentTime = AUDIO_START_SECONDS;
+      } catch (_) { /* some browsers require metadata loaded; we’ll still try play */ }
+
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // If autoplay policies block it, user can tap again to start.
+          // (We keep it quiet here on purpose.)
+        });
+      }
+    }
+
+    function onPointerDown(e) {
+      if (revealed) return;
+      isPointerDown = true;
+      lastPt = null;
+      canvas.setPointerCapture?.(e.pointerId);
+      scratchTo(getCanvasPointFromEvent(e));
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!isPointerDown || revealed) return;
+      scratchTo(getCanvasPointFromEvent(e));
+      strokes++;
+
+      // Check reveal progress every few moves to keep it fast
+      if (strokes % 14 === 0) {
+        const frac = clearedFractionSampled(10);
+        if (frac >= REVEAL_THRESHOLD) triggerReveal();
+      }
+      e.preventDefault();
+    }
+
+    function onPointerUp(e) {
+      if (revealed) return;
+      isPointerDown = false;
+      lastPt = null;
+
+      // One final check when they lift
+      const frac = clearedFractionSampled(10);
+      if (frac >= REVEAL_THRESHOLD) triggerReveal();
+
+      e.preventDefault();
+    }
+
+    // Make sure the canvas lines up once the image is loaded
+    img.addEventListener('load', () => {
+      layoutCanvasToImage();
+    });
+
+    window.addEventListener('resize', () => {
+      // Resizing resets the coating to keep alignment perfect.
+      // (If you want to preserve scratch progress across resizes, tell me.)
+      layoutCanvasToImage();
+    });
+
+    // Pointer events cover mouse + touch + pen
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+    canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+    canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+    canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+
+    // If the browser blocks audio, a tap after reveal will start it
+    document.addEventListener('pointerdown', () => {
+      if (!revealed) return;
+      if (audio.paused) {
+        try { audio.currentTime = Math.max(audio.currentTime, AUDIO_START_SECONDS); } catch(_) {}
+        audio.play().catch(()=>{});
+      }
+    });
+
+    // If the image is cached and load already happened
+    if (img.complete) layoutCanvasToImage();
   </script>
 </body>
 </html>
