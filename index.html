@@ -1,2 +1,398 @@
-<!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width,initial-scale=1" /> <title>💌</title> <style> :root{ --bg: #0b0b10; --card: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.12); --text: rgba(255,255,255,0.92); --muted: rgba(255,255,255,0.72); --accent: #ff4fa3; --accent2:#7cf7ff; } *{box-sizing:border-box} body{ margin:0; background: radial-gradient(1200px 800px at 20% 10%, rgba(255,79,163,0.18), transparent 55%), radial-gradient(1000px 700px at 90% 30%, rgba(124,247,255,0.14), transparent 60%), var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; min-height:100svh; display:flex; align-items:center; justify-content:center; padding:18px; } .wrap{width:min(720px, 100%)} .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; } .badge{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); border:1px solid var(--border); padding:8px 10px; border-radius:999px; background: rgba(255,255,255,0.03); user-select:none; width:max-content; } .card{ border:1px solid var(--border); background: var(--card); border-radius:18px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.45); } .hero{ padding:20px 18px 8px 18px; } h1{ margin:0 0 6px 0; font-size:22px; line-height:1.2; } p{margin:0; color:var(--muted); line-height:1.45} .divider{height:1px; background:var(--border); margin:14px 0} .reveal-area{ position:relative; padding:18px; display:grid; gap:12px; } .surprise{ border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:16px; background: linear-gradient(135deg, rgba(255,79,163,0.14), transparent 45%), linear-gradient(225deg, rgba(124,247,255,0.10), transparent 55%), rgba(0,0,0,0.24); } .surprise h2{ margin:0 0 6px 0; font-size:18px; display:flex; align-items:center; gap:8px; } .pill{ display:inline-flex; border:1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted); width:max-content; } .big{ font-size:20px; color:var(--text); margin-top:8px; line-height:1.25; } .small{ font-size:13px; color:var(--muted); margin-top:8px; } .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; } button{ appearance:none; border:none; cursor:pointer; padding:10px 12px; border-radius:12px; font-weight:650; background: rgba(255,255,255,0.08); color:var(--text); border:1px solid rgba(255,255,255,0.16); } button:hover{background: rgba(255,255,255,0.12)} button.primary{ background: linear-gradient(135deg, rgba(255,79,163,0.45), rgba(124,247,255,0.25)); border:1px solid rgba(255,255,255,0.22); } .canvasWrap{ position:relative; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.22); min-height: 260px; } #scratch{ width:100%; height:260px; display:block; touch-action:none; /* so finger scratching doesn't scroll */ } .under{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:18px; gap:10px; } .under .title{ font-size:18px; font-weight:750; display:flex; align-items:center; gap:10px; } .under .meta{ display:flex; flex-wrap:wrap; gap:8px; } .under .meta span{ font-size:12px; color:var(--muted); border:1px dashed rgba(255,255,255,0.18); padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.03); } .hint{ font-size:12px; color:var(--muted); padding:12px 18px 18px 18px; } .footer{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 18px 18px 18px; color:var(--muted); font-size:12px; } .tiny{ opacity:.85; } .progress{ font-variant-numeric: tabular-nums; border:1px solid rgba(255,255,255,0.12); padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.03); user-select:none; } </style> </head> <body> <div class="wrap"> <div class="top"> <div class="badge">for james • open when you’re alone-ish 😈</div> <div class="progress" id="prog">scratch: 0%</div> </div> <div class="card"> <div class="hero"> <h1>Okay hi. I made you a stupid little interactive Valentine.</h1> <p>Because my love language is planning, romance, and gently bullying you into joy.</p> <div class="divider"></div> <div class="reveal-area"> <div class="canvasWrap" aria-label="Scratch to reveal surprise"> <!-- Underlay content (the thing being revealed) --> <div class="under"> <div class="title">💘 Surprise unlocked</div> <!-- EDIT THESE --> <div class="meta"> <span>Converge (and friends)</span> <span>May 2026</span> <span>1 ticket </span><img src="tickets.jpg" alt="Ticket screenshot" style="width:100%;max-width:520px;border-radius:14px;border:1px solid rgba(255,255,255,0.14);margin-top:10px;">
- </div> <div class="big"> You’re coming out of mosh retirement for this one.<br /> <3 </div> <div class="small"> Screenshot / details are below. </div> <div class="btnrow"> <button class="primary" id="confetti">tap for confetti</button> <button id="reset">reset scratch</button> </div> </div> <!-- Scratch layer --> <canvas id="scratch"></canvas> </div> </div> <div class="hint"> <strong>How to use:</strong> scratch the gray area with your finger. If you’re on desktop, click + drag. </div> <div class="footer"> <div class="tiny">made with: heart eyes + determination</div> <div class="tiny">— Koryn</div> </div> </div> </div> </div> <script> // --- Scratch-off implementation (simple + satisfying) --- const canvas = document.getElementById('scratch'); const ctx = canvas.getContext('2d'); const prog = document.getElementById('prog'); function sizeCanvas(){ const rect = canvas.getBoundingClientRect(); const dpr = Math.max(1, window.devicePixelRatio || 1); canvas.width = Math.floor(rect.width * dpr); canvas.height = Math.floor(rect.height * dpr); ctx.setTransform(dpr,0,0,dpr,0,0); paintCover(); } function paintCover(){ const w = canvas.clientWidth, h = canvas.clientHeight; // cover color + a little texture ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(220,220,220,0.95)'; ctx.fillRect(0,0,w,h); // subtle diagonal stripes ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 8; for(let i=-h; i<w; i+=24){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+h, h); ctx.stroke(); } // instruction text ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.font = '700 18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'; ctx.fillText('scratch to reveal', 18, 40); ctx.font = '500 13px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'; ctx.fillText('use your finger • or click + drag', 18, 62); updateProgress(); } let isDown = false; let last = null; function getPos(e){ const rect = canvas.getBoundingClientRect(); const touch = e.touches?.[0]; const clientX = touch ? touch.clientX : e.clientX; const clientY = touch ? touch.clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; } function scratchLine(from, to){ ctx.globalCompositeOperation = 'destination-out'; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke(); ctx.globalCompositeOperation = 'source-over'; } function onDown(e){ e.preventDefault(); isDown = true; last = getPos(e); // little dot at start ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(last.x, last.y, 18, 0, Math.PI*2); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; updateProgress(); } function onMove(e){ if(!isDown) return; e.preventDefault(); const pos = getPos(e); scratchLine(last, pos); last = pos; updateProgressThrottled(); } function onUp(){ isDown = false; last = null; updateProgress(); maybeAutoReveal(); } canvas.addEventListener('mousedown', onDown); canvas.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp); canvas.addEventListener('touchstart', onDown, {passive:false}); canvas.addEventListener('touchmove', onMove, {passive:false}); window.addEventListener('touchend', onUp); // Estimate scratched percent by sampling pixels (fast-ish) function computeScratchedPercent(){ const w = canvas.width, h = canvas.height; const img = ctx.getImageData(0,0,w,h).data; // sample every Nth pixel for speed const step = 16; // higher = faster, less precise let total = 0, cleared = 0; for(let i=3; i<img.length; i+=4*step){ total++; const alpha = img[i]; if(alpha === 0) cleared++; } return Math.round((cleared/total)*100); } let throttleTimer = null; function updateProgressThrottled(){ if(throttleTimer) return; throttleTimer = setTimeout(()=>{ updateProgress(); throttleTimer = null; }, 120); } function updateProgress(){ const pct = computeScratchedPercent(); prog.textContent = scratch: ${pct}%; return pct; } function maybeAutoReveal(){ const pct = updateProgress(); if(pct >= 55){ // fade out remaining cover for a satisfying finish const fade = setInterval(()=>{ ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(0,0,canvas.clientWidth, canvas.clientHeight); ctx.globalCompositeOperation = 'source-over'; const p = updateProgress(); if(p >= 92){ clearInterval(fade); prog.textContent = scratch: 100%; } }, 30); } } // Confetti (tiny + contained) const confettiBtn = document.getElementById('confetti'); confettiBtn.addEventListener('click', ()=>{ const bursts = 5; for(let b=0; b<bursts; b++){ setTimeout(()=>burst(), b*120); } }); function burst(){ const n = 26; const frag = document.createDocumentFragment(); for(let i=0; i<n; i++){ const s = document.createElement('span'); s.style.position = 'fixed'; s.style.left = (Math.random()*100) + 'vw'; s.style.top = '-10px'; s.style.width = '8px'; s.style.height = '8px'; s.style.borderRadius = Math.random() > .5 ? '2px' : '999px'; s.style.background = Math.random() > .5 ? 'rgba(255,79,163,0.95)' : 'rgba(124,247,255,0.95)'; s.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)'; s.style.transform = rotate(${Math.random()*180}deg); s.style.zIndex = 9999; const dur = 900 + Math.random()*900; const drift = (Math.random()*2-1) * 120; s.animate([ { transform: s.style.transform, opacity: 1, top: '-10px', offset: 0 }, { transform: translateX(${drift}px) rotate(${Math.random()*360}deg), opacity: 1, top: '60vh', offset: 0.7 }, { transform: translateX(${drift}px) rotate(${Math.random()*720}deg), opacity: 0, top: '110vh', offset: 1 } ], { duration: dur, easing: 'cubic-bezier(.1,.9,.2,1)', fill: 'forwards' }); frag.appendChild(s); setTimeout(()=>s.remove(), dur+50); } document.body.appendChild(frag); } // Reset document.getElementById('reset').addEventListener('click', paintCover); window.addEventListener('resize', sizeCanvas); sizeCanvas(); </script> </body> </html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💌</title>
+
+  <style>
+    :root{
+      /* softer, warmer palette (not neon) */
+      --bg1:#0f0b10;         /* deep plum-black */
+      --bg2:#1a1220;         /* dark eggplant */
+      --card: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.14);
+      --text: rgba(255,255,255,0.93);
+      --muted: rgba(255,255,255,0.72);
+
+      --accent:#e8a6b8;      /* dusty rose */
+      --accent2:#f0d7a6;     /* soft gold */
+      --shadow: rgba(0,0,0,0.45);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100svh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1000px 700px at 15% 10%, rgba(232,166,184,0.18), transparent 60%),
+        radial-gradient(900px 600px at 85% 25%, rgba(240,215,166,0.14), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+    }
+
+    .wrap{ width:min(720px, 100%); }
+
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .badge, .progress{
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      padding:8px 10px;
+      border-radius:999px;
+      user-select:none;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      background: var(--card);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: 0 22px 70px var(--shadow);
+    }
+
+    .hero{ padding:18px; }
+    h1{
+      margin:0 0 6px 0;
+      font-size:22px;
+      line-height:1.2;
+    }
+    p{ margin:0; color:var(--muted); line-height:1.45; }
+
+    .divider{ height:1px; background:var(--border); margin:14px 0; }
+
+    .scratchFrame{
+      position:relative;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.16);
+      background:
+        linear-gradient(135deg, rgba(232,166,184,0.12), transparent 40%),
+        linear-gradient(225deg, rgba(240,215,166,0.10), transparent 55%),
+        rgba(0,0,0,0.25);
+    }
+
+    /* revealed content sits UNDER the scratch layer */
+    .under{
+      position:relative;
+      padding:18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .under .title{
+      font-size:18px;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .meta span{
+      font-size:12px;
+      color:var(--muted);
+      border:1px dashed rgba(255,255,255,0.18);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .big{
+      font-size:20px;
+      line-height:1.25;
+    }
+
+    .small{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
+    .ticket{
+      width:100%;
+      max-width:520px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.14);
+      display:block;
+    }
+
+    /* THE CANVAS IS THE SCRATCH LAYER */
+    #scratch{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      touch-action:none;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      padding:0 18px 18px 18px;
+    }
+
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:0 18px 18px 18px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:700;
+      background: rgba(255,255,255,0.08);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.16);
+      width:max-content;
+    }
+    button:hover{ background: rgba(255,255,255,0.12); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="badge">for james • open when you’re alone-ish 😈</div>
+      <div class="progress" id="prog">scratch: 0%</div>
+    </div>
+
+    <div class="card">
+      <div class="hero">
+        <h1>Okay hi. I made you something.</h1>
+        <p>Scratch the card. Don’t be dramatic about it.</p>
+
+        <div class="divider"></div>
+
+        <div class="scratchFrame" id="frame">
+          <div class="under">
+            <!-- EDIT THIS CONTENT -->
+            <div class="title">💌 Happy Valentine’s</div>
+
+            <div class="meta">
+              <span>Poison the Well</span>
+              <span>May 16, 2026 • 6:00 PM</span>
+              <span>The Observatory North Park • San Diego</span>
+            </div>
+
+            <div class="big">
+              You’re coming out of mosh retirement for this one. &lt;3
+            </div>
+
+            <div class="small">
+              I already got the ticket. We’ll do it right: good food, downtown energy, then loud boys.
+            </div>
+
+            <img class="ticket" src="tickets.jpg" alt="Ticket screenshot">
+            <!-- /EDIT -->
+          </div>
+
+          <canvas id="scratch"></canvas>
+        </div>
+
+        <div class="hint">
+          <strong>How to use:</strong> scratch the gray layer with your finger. (Desktop: click + drag.)
+        </div>
+
+        <div class="footer">
+          <div>made with: heart eyes + determination</div>
+          <div>— Koryn</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('scratch');
+    const ctx = canvas.getContext('2d');
+    const prog = document.getElementById('prog');
+    const frame = document.getElementById('frame');
+
+    let isDown = false;
+    let last = null;
+
+    function sizeCanvas(){
+      const rect = frame.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+      canvas.width  = Math.floor(rect.width  * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+
+      canvas.style.width  = rect.width + "px";
+      canvas.style.height = rect.height + "px";
+
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      paintCover();
+    }
+
+    function paintCover(){
+      const w = frame.clientWidth;
+      const h = frame.clientHeight;
+
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0,0,w,h);
+
+      // Scratch surface (soft gray + texture)
+      ctx.fillStyle = 'rgba(230,230,230,0.96)';
+      ctx.fillRect(0,0,w,h);
+
+      // light speckle texture
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      for(let i=0;i<900;i++){
+        const x = Math.random()*w;
+        const y = Math.random()*h;
+        const r = Math.random()*1.8;
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      // instruction text on the scratch layer
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.font = '800 18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+      ctx.fillText('scratch to reveal', 18, 40);
+      ctx.font = '500 13px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+      ctx.fillText('use your finger • or click + drag', 18, 62);
+
+      updateProgress();
+    }
+
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches?.[0];
+      const clientX = touch ? touch.clientX : e.clientX;
+      const clientY = touch ? touch.clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function scratchLine(from, to){
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 40; // juicy scratch width
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function onDown(e){
+      e.preventDefault();
+      isDown = true;
+      last = getPos(e);
+
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 20, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+
+      updateProgress();
+    }
+
+    function onMove(e){
+      if(!isDown) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      scratchLine(last, pos);
+      last = pos;
+      updateProgressThrottled();
+    }
+
+    function onUp(){
+      isDown = false;
+      last = null;
+      const pct = updateProgress();
+      if(pct >= 55) autoFinish();
+    }
+
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+
+    canvas.addEventListener('touchstart', onDown, {passive:false});
+    canvas.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('touchend', onUp);
+
+    function computeScratchedPercent(){
+      const w = canvas.width;
+      const h = canvas.height;
+      const img = ctx.getImageData(0,0,w,h).data;
+
+      const step = 24; // speed/accuracy balance
+      let total = 0, cleared = 0;
+      for(let i=3; i<img.length; i+=4*step){
+        total++;
+        if(img[i] === 0) cleared++;
+      }
+      return Math.round((cleared/total)*100);
+    }
+
+    let throttleTimer = null;
+    function updateProgressThrottled(){
+      if(throttleTimer) return;
+      throttleTimer = setTimeout(()=>{
+        updateProgress();
+        throttleTimer = null;
+      }, 120);
+    }
+
+    function updateProgress(){
+      const pct = computeScratchedPercent();
+      prog.textContent = `scratch: ${pct}%`;
+      return pct;
+    }
+
+    function autoFinish(){
+      // fade out remaining cover for a satisfying finish
+      const w = frame.clientWidth, h = frame.clientHeight;
+      const fade = setInterval(()=>{
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,0.09)';
+        ctx.fillRect(0,0,w,h);
+        ctx.globalCompositeOperation = 'source-over';
+        const p = updateProgress();
+        if(p >= 92){
+          clearInterval(fade);
+          prog.textContent = `scratch: 100%`;
+        }
+      }, 30);
+    }
+
+    window.addEventListener('resize', sizeCanvas);
+    // wait a beat so fonts/layout settle
+    setTimeout(sizeCanvas, 40);
+  </script>
+</body>
+</html>
